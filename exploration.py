@@ -21,23 +21,30 @@ ACTION_MAP = {move_up: 1, move_down: 2, move_left: 3, move_right: 4}
 
 class OptimalExploration():
     def __init__(self):
+        """
+        Defining the various attributes of our class
+        """
+        # Dimension of the grid
         self.N = 60
         self.M = 35
 
+        # Discount factor
         self.discount = 0.1
 
+        # Initialising the various penalties
         self.state_penalty = -30
-        self.neighb_penalty = -100
-        self.obstacle_penalty = -1000
+        self.neighb_penalty = -100          
+        self.obstacle_penalty = -1000     # (we never want to hit an obstacle)
 
+        # Initial coordinates and state
         self.curr_x_coord = 1
         self.curr_y_coord = 1
-        
         self.init_state = self.get_state(self.curr_x_coord, self.curr_y_coord)
         self.curr_state = self.init_state
 
         self.states_explored = [self.curr_state]
 
+        # Reward and Utility matrices
         self.R = np.ones(self.N * self.M)
         self.U = np.ones(self.N * self.M)
         self.update_local_reward(self.init_state)
@@ -53,6 +60,10 @@ class OptimalExploration():
 
 
     def create_state_coord_map(self, N, M):
+        """
+        Defines a dictionary that uses states as keys and coordinate tuples as 
+        values
+        """
         state_coord_map = {}
 
         for m in range(1, self.M+1):
@@ -64,10 +75,16 @@ class OptimalExploration():
 
 
     def get_state(self, x, y):
+        """
+        Returns the state linked with x and y coordinates
+        """
         return (y - 1) * self.N + x
 
 
     def update_obstacles_rewards(self):
+        """
+        Updates the rewards matrix to take the obstacles in account
+        """
         for obstacle in self.obstacles:
             (x_bl, y_bl) = obstacle[0]
             (x_tr, y_tr) = obstacle[1]
@@ -79,6 +96,9 @@ class OptimalExploration():
 
 
     def get_valid_actions(self, x, y):
+        """
+        Gather list of possible actions taking the bounds of the matrix into account
+        """
         state = self.get_state(x, y)
         valid_actions = []
 
@@ -95,6 +115,11 @@ class OptimalExploration():
 
 
     def update_local_reward(self, state):
+        """
+        Updates the Reward matrix for the current state and the neighbours of
+        the current state, assigning penalties to places that have already been
+        explored
+        """
         self.R[state-1] += self.state_penalty
         surr_states = self.get_surrounding_states(state)
         
@@ -103,8 +128,13 @@ class OptimalExploration():
 
 
     def get_surrounding_states(self, state):
+        """
+        Obtains the list of states that are being explored when the vehicle
+        is in a state. This corresponds to the wingspan of the vehicle
+        """
         # 9 cases: 4 vertices, 4 edges, central
-
+        
+        # Top row
         if state > self.N * (self.M - 1):
             if state % self.N == 1:             #top left corner
                 surr_states = [state+1, state-self.N, state-self.N+1]
@@ -113,6 +143,7 @@ class OptimalExploration():
             else:
                 surr_states = [state+1, state-1, state-self.N, state-self.N+1, state-self.N-1]
 
+        # Bottom row
         elif state < self.N:
             if state % self.N == 1:             #bottom left corner
                 surr_states = [state+1, state+self.N, state+self.N+1]
@@ -121,47 +152,47 @@ class OptimalExploration():
             else:
                 surr_states = [state+1, state-1, state+self.N, state+self.N+1, state+self.N-1]
 
+        # Right column
         elif state % self.N == 0:               #right edge but not corner
             surr_states = [state+self.N, state-self.N, state+self.N-1, state-self.N-1, state-1]
 
+        # Left column
         elif state % self.N == 1:               #left edge but not corner
             surr_states = [state+self.N, state-self.N, state+self.N+1, state-self.N+1, state+1]
 
-        else:                                   #central
+        # Centre
+        else:
             surr_states = [state+1, state-1, state+self.N, state+self.N+1, state+self.N-1, state-self.N, state-self.N+1, state-self.N-1]
 
         return surr_states
 
 
     def simulation(self, N):
-        # get valid actions for current state
-        # choose action that maximizes utility
-
-        for _ in range(N):
-
+        """
+        The simulation runs the RL algorithm. 
+        """
+        for _ in range(N):                              #### UPDATE TO WHILE WITH LOSS FUNCTION? ####
+            # get valid actions for current state
             valid_actions = self.get_valid_actions(self.curr_x_coord, self.curr_y_coord)
 
             utilities = []
+            # iterate over all 4 possible actions
             for action in self.actions:
                 if action not in valid_actions:
                     utilities.append(-np.inf)
                 else:
+                    # get the coordinates corresponding to the next state after taking this action
                     new_x, new_y = action(self.state_coord_map[self.curr_state][0], self.state_coord_map[self.curr_state][1])
-
-                    # for each action
-                        # get new coord
-                        # get new state
-                        # compute utility of new state
-                        # choose new state as state with highest utility
-
                     new_state = self.get_state(new_x, new_y)
                     utilities.append(self.R[new_state-1] + self.discount * self.U[new_state-1])
 
+            # choose action that maximizes utility
             self.U[new_state-1] = np.amax(utilities)
             new_action_idx = np.argmax(utilities)
 
             new_action = self.actions[new_action_idx]
 
+            # update coordinates to reflect chosen action
             self.curr_x_coord, self.curr_y_coord = new_action(self.curr_x_coord, self.curr_y_coord)
             self.curr_state = self.get_state(self.curr_x_coord, self.curr_y_coord)
             #print("new action: ", new_action)
@@ -172,7 +203,9 @@ class OptimalExploration():
 
 
     def show(self):
-
+        """
+        Plots the corresponding trajectory
+        """
         fig = plt.figure(figsize=(12, 8))
         ax = fig.add_subplot(111)
 
@@ -215,8 +248,11 @@ class OptimalExploration():
 
 
 def solve():
+    """
+    Function to run the script
+    """
     optimal_exploration = OptimalExploration()
-    optimal_exploration.simulation(1500)
+    optimal_exploration.simulation(2500)
     optimal_exploration.show()
 
 
