@@ -210,10 +210,10 @@ class OptimalExploration():
         ax = fig.add_subplot(111)
 
         # create contour
-        ax.plot([1, self.N], [1, 1], c='b')
-        ax.plot([1, self.N], [self.M, self.M], c='b')
-        ax.plot([1, 1], [1, self.M], c='b')
-        ax.plot([self.N, self.N], [1, self.M], c='b')
+        ax.plot([0, self.N + 1], [0, 0], c='b')
+        ax.plot([0, self.N + 1], [self.M + 1, self.M + 1], c='b')
+        ax.plot([0, 0], [0, self.M + 1], c='b')
+        ax.plot([self.N + 1, self.N + 1], [0, self.M + 1], c='b')
 
         # create obstacles
         for obstacle in self.obstacles:
@@ -240,9 +240,12 @@ class OptimalExploration():
 
 
         # plot exploration
-        for state in self.states_explored:
-            (x, y) = self.state_coord_map[state]
-            ax.scatter(x, y, c='r', s=5, zorder=10.0)
+        for i, state in enumerate(self.states_explored):
+            if i != 0:
+                (x0, y0) = self.state_coord_map[self.states_explored[i - 1]]
+                (x1, y1) = self.state_coord_map[state]
+                # ax.scatter(x0, y0, c='r', s=5, zorder=10.0)
+                ax.arrow(x0, y0, (x1-x0)*0.8, (y1-y0)*0.8, width=0.1, head_width=0.3, color="r")
 
         plt.show()
 
@@ -252,7 +255,7 @@ def solve():
     Function to run the script
     """
     optimal_exploration = OptimalExploration()
-    optimal_exploration.simulation(2500)
+    optimal_exploration.simulation(1500)
     optimal_exploration.show()
 
 
