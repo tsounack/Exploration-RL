@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import random
 
 from tqdm import tqdm
 
@@ -45,7 +46,7 @@ class SarsaLambda:
         self.visited_reward = 0
         self.unvisited_reward = 10
         # self.neighb_penalty = -100          
-        self.obstacle_penalty = -1000     # (we never want to hit an obstacle)
+        self.obstacle_reward = -1000     # (we never want to hit an obstacle)
 
         self.obstacles = [[(10, 15), (20, 35)],             # bottom left and top right corner
                             [(50, 1), (60, 4)]]
@@ -55,6 +56,7 @@ class SarsaLambda:
         self.initial_s     = self.get_state_index(self.initial_coord, 0)
 
         self.visited = set(self.initial_coord)
+        self.obstacle_states = set()
         self.state_coord_map = self.create_state_coord_map()
 
         self.Q = np.zeros((self.nb_state, self.nb_action))
@@ -85,7 +87,7 @@ class SarsaLambda:
         valid_actions = self.get_valid_actions(self.state_coord_map[curr_state])
 
         if np.random.uniform(0, 1) < self.epsilon:
-            action = valid_actions[np.random.randint(0, len(valid_actions))]
+            action = random.choice(valid_actions)
         else:
             action = valid_actions[np.argmax([self.Q[curr_state, a] for a in valid_actions])]
         return action
@@ -111,9 +113,8 @@ class SarsaLambda:
         """
         s = self.initial_s
 
-        for event in tqdm(range(self.nb_events), desc="Event"):
+        for event in tqdm(range(self.nb_events), desc="Simulations"):
             a = self.epsilon_greedy(s)
-            print(s, a, self.state_coord_map[s])
             s1, r = self.transition(s, a)
             self.update(s, a, r)
             s = s1
@@ -125,16 +126,27 @@ class SarsaLambda:
         """
         new_coord = ACTION_MAP[a](self.state_coord_map[s])
 
-        visited = 1
-        reward  = 0
+        if new_coord in self.visited:
+            visited = 1
 
-        if new_coord not in self.visited:
+            if new_coord in self.obstacle_states:
+                reward = self.obstacle_reward
+
+            else:
+                reward = self.visited_reward
+
+        else:
             visited = 0
+
+            if self.is_in_obstacle(new_coord):
+                reward = self.obstacle_reward
+                self.obstacle_states.add(new_coord)
+
+            else:
+                reward = self.unvisited_reward
+            
             self.visited.add(new_coord)
-            reward = self.unvisited_reward
-        
-        if self.is_in_obstacle(new_coord):
-            reward = self.obstacle_penalty
+
         
         return (self.get_state_index(new_coord, visited), reward)
         
@@ -232,16 +244,41 @@ class SarsaLambda:
 
 
         # plot exploration
-        s       = self.get_state_index(self.initial_coord, 1)
+        s       = self.get_state_index(self.initial_coord, 0)
         x0, y0 = self.initial_coord
 
         #### TODO: FIND THE EXACT NUMBER OF ITERATIONS TO PERFORM ####
-        for _ in range(self.n * self.m):
-            action  = np.argmax(self.Q[s])
+
+        print("# of states visited: ", len(self.visited))
+
+        for _ in tqdm(range(self.n * self.m * 10), desc="Plotting"):
+            valid_actions = self.get_valid_actions((x0, y0))
+            action = valid_actions[np.argmax([self.Q[s, a] for a in valid_actions])]
             x1, y1 = ACTION_MAP[action]((x0, y0))
             ax.arrow(x0, y0, (x1-x0)*0.8, (y1-y0)*0.8, width=0.1, head_width=0.3, color="r")
 
             x0, y0 = x1, y1
-            s = self.get_state_index((x1, y1), 1)
+            s = self.get_state_index((x1, y1), 0)
+
+
+        """
+        for x in range(1, self.n + 1):
+            for y in range(1, self.m + 1):
+                coord = (x, y)
+                s = self.get_state_index(coord, 0)
+                valid_actions = self.get_valid_actions(coord)
+                action = valid_actions[np.argmax([self.Q[s, a] for a in valid_actions])]
+                
+                if action == 0:
+                    ax.arrow(x, y-0.2, 0, 0.4, width=0.1, head_width=0.3, color="r")
+
+                elif action == 1:
+                    ax.arrow(x+0.2, y, -0.4, 0, width=0.1, head_width=0.3, color="r")
+
+                else:
+                    ax.arrow(x-0.2, y, 0.4, 0, width=0.1, head_width=0.3, color="r")
+        """
+
+
 
         plt.show()
