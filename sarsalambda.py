@@ -85,7 +85,7 @@ class SarsaLambda:
         valid_actions = self.get_valid_actions(self.state_coord_map[curr_state])
 
         if np.random.uniform(0, 1) < self.epsilon:
-            action = np.random.randint(0, self.nb_action - 1)
+            action = valid_actions[np.random.randint(0, len(valid_actions))]
         else:
             action = valid_actions[np.argmax([self.Q[curr_state, a] for a in valid_actions])]
         return action
