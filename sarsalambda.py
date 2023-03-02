@@ -16,8 +16,12 @@ def move_right(coord: tuple[int, int]) -> tuple[int, int]:
     x, y = coord
     return (x + 1, y)
 
+def move_down(coord: tuple[int, int]) -> tuple[int, int]:
+    x, y = coord
+    return (x, y - 1)
 
-ACTION_MAP = {0: move_up, 1: move_left, 2: move_right}
+
+ACTION_MAP = {0: move_up, 1: move_left, 2: move_right, 3: move_down}
 
 
 class SarsaLambda:
@@ -66,7 +70,7 @@ class SarsaLambda:
 
     def create_state_coord_map(self):
         """
-        
+        Creates the dictionary that maps state indexes with coordinates
         """
         state_coord_map = {}
 
@@ -81,7 +85,7 @@ class SarsaLambda:
 
     def epsilon_greedy(self, curr_state: int) -> int:
         """
-        This function implements the epsilon greedy policy to choose the next action.
+        Implements the epsilon greedy policy to choose the next action.
         It takes the current state as argument.
         """
         valid_actions = self.get_valid_actions(self.state_coord_map[curr_state])
@@ -95,7 +99,8 @@ class SarsaLambda:
     
     def update(self, s, a, r) -> None:
         """
-        
+        Helper method for the simulate method. Updates Q and N based on the
+        current state's observations
         """
         if self.last != None:
             ls, la, lr = self.last[0], self.last[1], self.last[2]
@@ -109,7 +114,8 @@ class SarsaLambda:
 
     def simulate(self) -> None:
         """
-        
+        Runs the sarsa lambda algorithm *nb_events* times. The policy chosen is
+        epsilon greedy
         """
         s = self.initial_s
 
@@ -122,7 +128,7 @@ class SarsaLambda:
 
     def transition(self, s: int, a: int) -> tuple[int, int]:
         """
-        
+        Returns the next actio
         """
         new_coord = ACTION_MAP[a](self.state_coord_map[s])
 
@@ -193,6 +199,8 @@ class SarsaLambda:
             valid_actions.append(2)
         if position % self.n != 1:
             valid_actions.append(1)
+        if position > self.n:
+            valid_actions.append(3)
         
         return valid_actions
     
@@ -261,23 +269,25 @@ class SarsaLambda:
             s = self.get_state_index((x1, y1), 0)
 
 
-        """
-        for x in range(1, self.n + 1):
-            for y in range(1, self.m + 1):
-                coord = (x, y)
-                s = self.get_state_index(coord, 0)
-                valid_actions = self.get_valid_actions(coord)
-                action = valid_actions[np.argmax([self.Q[s, a] for a in valid_actions])]
-                
-                if action == 0:
-                    ax.arrow(x, y-0.2, 0, 0.4, width=0.1, head_width=0.3, color="r")
+        # for x in range(1, self.n + 1):
+        #     for y in range(1, self.m + 1):
+        #         coord = (x, y)
+        #         if coord in self.visited:
+        #             s = self.get_state_index(coord, 1)
+        #             valid_actions = self.get_valid_actions(coord)
+        #             action = valid_actions[np.argmax([self.Q[s, a] for a in valid_actions])]
+                    
+        #             if action == 0:
+        #                 ax.arrow(x, y-0.2, 0, 0.4, width=0.1, head_width=0.3, color="r")
 
-                elif action == 1:
-                    ax.arrow(x+0.2, y, -0.4, 0, width=0.1, head_width=0.3, color="r")
+        #             elif action == 1:
+        #                 ax.arrow(x+0.2, y, -0.4, 0, width=0.1, head_width=0.3, color="r")
 
-                else:
-                    ax.arrow(x-0.2, y, 0.4, 0, width=0.1, head_width=0.3, color="r")
-        """
+        #             elif action == 2:
+        #                 ax.arrow(x-0.2, y, 0.4, 0, width=0.1, head_width=0.3, color="r")
+                    
+        #             elif action == 3:
+        #                 ax.arrow(x, y+0.2, 0, -0.4, width=0.1, head_width=0.3, color="r")
 
 
 
