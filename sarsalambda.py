@@ -112,26 +112,56 @@ class SarsaLambda:
         self.last = [s, a, r]
 
 
-    def simulate(self) -> None:
+    def simulate(self, init_state: int) -> None:
         """
         Runs the sarsa lambda algorithm *nb_events* times. The policy chosen is
         epsilon greedy
         """
-        s = self.initial_s
+        s = init_state
 
-        for event in tqdm(range(self.nb_events), desc="Simulations"):
+        for event in range(self.nb_events):
             a = self.epsilon_greedy(s)
             s1, r = self.transition(s, a)
             self.update(s, a, r)
             s = s1
+        
+
+    def run_simulations(self, nb_simulations) -> None:
+        """
+        
+        """
+        for simulation in tqdm(range(nb_simulations), desc="Simulations"):
+            init_state = self.randomize_init()
+            self.simulate(init_state)
+
+
+        
+    def randomize_init(self) -> int:
+        """
+        
+        """
+        init_coord = (random.randint(1, self.n), random.randint(1, self.m))
+        init_state = self.get_state_index(init_coord, 1)
+
+        nb_visited = random.randint(0, self.n * self.m - 1)
+        self.visited = set()
+
+        for visits in range(nb_visited):
+            x, y = random.randint(1, self.n), random.randint(1, self.m)
+            self.visited.add((x, y))
+
+        self.visited.add(init_coord)
+
+        return init_state
 
 
     def transition(self, s: int, a: int) -> tuple[int, int]:
         """
-        Returns the next actio
+        Returns the next state and reward for a given state and action
         """
         new_coord = ACTION_MAP[a](self.state_coord_map[s])
 
+        # if the new coordinate has been visited
         if new_coord in self.visited:
             visited = 1
 
@@ -140,7 +170,8 @@ class SarsaLambda:
 
             else:
                 reward = self.visited_reward
-
+        
+        # if this is the first time we get to this next coordinate
         else:
             visited = 0
 
@@ -159,7 +190,8 @@ class SarsaLambda:
 
     def get_state_index(self, coord: tuple[int, int], visited: bool) -> int:
         """
-        zero indexed
+        Returns the state index for a given coordinate tuple and the information
+        on whether this tuple has been visited or not
         """
         position = self.get_position(coord)
         return (position - 1) * 2 + visited
@@ -167,7 +199,7 @@ class SarsaLambda:
 
     def get_position(self, coord: tuple[int, int]) -> int:
         """
-        Returns the position linked with x and y coordinates
+        Returns the position on the grid for a given coordinate tuple
         """
         x, y = coord
         return (y - 1) * self.n + x
@@ -175,7 +207,8 @@ class SarsaLambda:
 
     def is_in_obstacle(self, coord: tuple[int, int]) -> bool:
         """
-        
+        Given a coordinate tuple, returns a tuple corresponding to whether we are
+        in an obstacle (boundary included) or not
         """
         x, y = coord
         for obstacle in self.obstacles:
@@ -192,6 +225,8 @@ class SarsaLambda:
         """
         position = self.get_position(coord)
         valid_actions = []
+
+        ### TODO: Probably easier to just use the coordinates ###
 
         if position <= self.n * (self.m - 1):
             valid_actions.append(0)
@@ -252,12 +287,12 @@ class SarsaLambda:
 
 
         # plot exploration
-        s       = self.get_state_index(self.initial_coord, 0)
-        x0, y0 = self.initial_coord
+        x0, y0 = (1, 1)
+        s      = self.get_state_index((1, 1), 1)
 
         #### TODO: FIND THE EXACT NUMBER OF ITERATIONS TO PERFORM ####
 
-        print("# of states visited: ", len(self.visited))
+        # Trajectory simulator
 
         for _ in tqdm(range(self.n * self.m * 10), desc="Plotting"):
             valid_actions = self.get_valid_actions((x0, y0))
@@ -266,8 +301,10 @@ class SarsaLambda:
             ax.arrow(x0, y0, (x1-x0)*0.8, (y1-y0)*0.8, width=0.1, head_width=0.3, color="r")
 
             x0, y0 = x1, y1
-            s = self.get_state_index((x1, y1), 0)
+            s = self.get_state_index((x1, y1), 1)
 
+
+        # Best action for each state
 
         # for x in range(1, self.n + 1):
         #     for y in range(1, self.m + 1):

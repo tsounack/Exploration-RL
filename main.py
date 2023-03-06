@@ -1,6 +1,3 @@
-import numpy as np
-import time
-
 from sarsalambda import SarsaLambda
 
 grid = SarsaLambda(n = 60,
@@ -9,8 +6,8 @@ grid = SarsaLambda(n = 60,
                    learning = 0.1,
                    decay = 0.5,
                    epsilon = 0.3,
-                   nb_events = 1000000,
+                   nb_events = 100,
                    initial_coord=(1, 1)
                    )
-grid.simulate()
+grid.run_simulations(100000)
 grid.show()
