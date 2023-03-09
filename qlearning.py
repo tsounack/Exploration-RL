@@ -29,7 +29,7 @@ NB_STATES_PER_CORNER_CELL = 4
 
 
 class QLearning:
-    def __init__(self, N, M, init_coord=(0,0), eps=0.1, discount=0.8, learning=0.0005, decay=0.5, nb_train=100000000):
+    def __init__(self, N, M, init_coord=(0,0), eps=0.1, discount=0.6, learning=0.1, decay=0.5, nb_train=100):
         print("Initialized Q-Learing")
         self.N = N
         self.M = M
@@ -40,8 +40,8 @@ class QLearning:
         self.decay = decay
         self.nb_train = nb_train
         self.nb_actions = len(ACTION_MAP)
-        self.visited_reward = -10
-        self.unvisited_reward = 10
+        self.visited_reward = 0
+        self.unvisited_reward = -1
         self.last = None
 
         self.pos2coord = self.init_pos2coord()
@@ -192,7 +192,7 @@ class QLearning:
 
 
     def visited_all_cells(self):
-        if len(self.visited_pos) == self.N * self.M:
+        if len(self.visited_pos) >= 0.7* self.N * self.M:
             return True
         return False
 
@@ -204,26 +204,22 @@ class QLearning:
             reward = self.unvisited_reward
         return new_coord, reward
 
-    def update(self, coord, action, reward):
-        if self.last != None:
-            ls, la, lr = self.last[0], self.last[1], self.last[2]
-            self.n[ls, la] += 1
-            #print("state: {}/{}".format(self.get_state(coord), self.nb_states))
-            delta = lr + self.discount * self.Q[self.get_state(coord), action] - self.Q[ls, la]
-            
-            self.Q  += self.learning * delta * self.n
-            self.n  *= self.discount * self.decay
-        self.last = [self.get_state(coord), action, reward]
+    def update(self, coord, new_coord, action, reward):
+        s = self.get_state(coord)
+        s1 = self.get_state(new_coord)
+        self.Q[s, action] += self.learning * (reward + self.discount*max(self.Q[s1,:]) - self.Q[s, action])
 
 
     def training(self):
         for i in tqdm(range(self.nb_train), desc='Trainings'):
+            self.visited_pos.clear()
             coord = self.init_coord
+            #coord = (random.randint(0,self.N-1), random.randint(0,self.M-1))
             self.visited_pos.add(self.get_position(coord))
             while not self.visited_all_cells():
                 action = self.eps_greedy(coord)
                 new_coord, reward = self.transition(coord, action)
-                self.update(coord, action, reward)
+                self.update(coord, new_coord, action, reward)
                 coord = new_coord
                 self.visited_pos.add(self.get_position(coord))
                 
@@ -266,6 +262,7 @@ class QLearning:
             ax.arrow(x0, y0, (x1-x0)*0.8, (y1-y0)*0.8, width=0.1, head_width=0.3, color="r")
             coord = new_coord
             visited_during_plotting.append(coord)
+        
         
         plt.show()
 
