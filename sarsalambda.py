@@ -22,7 +22,7 @@ def move_down(coord: tuple[int, int]) -> tuple[int, int]:
     return (x, y - 1)
 
 
-ACTION_MAP = {0: move_up, 1: move_left, 2: move_right, 3: move_down}
+ACTION_MAP = {0: move_up, 1: move_left, 2: move_down, 3: move_right}
 
 
 class SarsaLambda:
@@ -49,9 +49,10 @@ class SarsaLambda:
 
         # Initialising the various penalties
         self.visited_reward = 0
-        self.unvisited_reward = 10
-        # self.neighb_penalty = -100          
+        self.unvisited_reward = 10       
         self.obstacle_reward = -1000     # (we never want to hit an obstacle)
+        self.gostraight_reward = 10
+        self.turn90_reward     = 0
 
         self.obstacles = [[(10, 15), (20, 35)],             # bottom left and top right corner
                             [(50, 1), (60, 4)]]
@@ -59,6 +60,7 @@ class SarsaLambda:
         self.last          = None
         self.initial_coord = initial_coord
         self.initial_s     = self.get_state_index(self.initial_coord, 0)
+        self.direction     = 0
 
         self.visited = set(self.initial_coord)
         self.obstacle_states = set()
@@ -125,6 +127,7 @@ class SarsaLambda:
             s1, r = self.transition(s, a)
             self.update(s, a, r)
             s = s1
+            self.direction = a
         
 
     def run_simulations(self, nb_simulations) -> None:
@@ -152,6 +155,8 @@ class SarsaLambda:
             self.visited.add((x, y))
 
         self.visited.add(init_coord)
+
+        self.direction = random.randint(1, 4)
 
         return init_state
 
@@ -184,6 +189,12 @@ class SarsaLambda:
                 reward = self.unvisited_reward
             
             self.visited.add(new_coord)
+
+        # reward keeping the same direction, and penalize turning
+        if a == self.direction:
+            reward += self.gostraight_reward
+        else:
+            reward += self.turn90_reward
 
         
         return (self.get_state_index(new_coord, visited), reward)
@@ -229,15 +240,24 @@ class SarsaLambda:
 
         ### TODO: Probably easier to just use the coordinates ###
 
+        # up
         if position <= self.n * (self.m - 1):
             valid_actions.append(0)
+        # right
         if position % self.n != 0:
-            valid_actions.append(2)
+            valid_actions.append(3)
+        # left
         if position % self.n != 1:
             valid_actions.append(1)
+        # down
         if position > self.n:
-            valid_actions.append(3)
+            valid_actions.append(2)
         
+        # remove turning around
+        invalid_action = (self.direction + 2) % 4
+        if invalid_action in valid_actions:
+            valid_actions.remove(invalid_action)
+
         return valid_actions
     
 
@@ -290,6 +310,7 @@ class SarsaLambda:
         # plot exploration
         x0, y0 = (1, 1)
         s      = self.get_state_index((1, 1), 1)
+        self.direction = 0
 
         #### TODO: FIND THE EXACT NUMBER OF ITERATIONS TO PERFORM ####
 
@@ -303,6 +324,7 @@ class SarsaLambda:
 
             x0, y0 = x1, y1
             s = self.get_state_index((x1, y1), 1)
+            self.direction = action
 
 
         # Best action for each state
