@@ -1,0 +1,13 @@
+prefix=/Users/albanbroze/Documents/Github/Exploration-RL-2/Exploration-RL/.conda
+exec_prefix=/Users/albanbroze/Documents/Github/Exploration-RL-2/Exploration-RL/.conda
+libdir=/Users/albanbroze/Documents/Github/Exploration-RL-2/Exploration-RL/.conda/lib
+sharedlibdir=/Users/albanbroze/Documents/Github/Exploration-RL-2/Exploration-RL/.conda/lib
+includedir=/Users/albanbroze/Documents/Github/Exploration-RL-2/Exploration-RL/.conda/include
+
+Name: zlib
+Description: zlib compression library
+Version: 1.2.13
+
+Requires:
+Libs: -L${libdir} -L${sharedlibdir} -lz
+Cflags: -I${includedir}
