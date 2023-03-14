@@ -316,15 +316,15 @@ class SarsaLambda:
 
         # Trajectory simulator
 
-        for _ in tqdm(range(self.n * self.m * 10), desc="Plotting"):
-            valid_actions = self.get_valid_actions((x0, y0))
-            action = valid_actions[np.argmax([self.Q[s, a] for a in valid_actions])]
-            x1, y1 = ACTION_MAP[action]((x0, y0))
-            ax.arrow(x0, y0, (x1-x0)*0.8, (y1-y0)*0.8, width=0.1, head_width=0.3, color="r")
+        # for _ in tqdm(range(self.n * self.m * 10), desc="Plotting"):
+        #     valid_actions = self.get_valid_actions((x0, y0))
+        #     action = valid_actions[np.argmax([self.Q[s, a] for a in valid_actions])]
+        #     x1, y1 = ACTION_MAP[action]((x0, y0))
+        #     ax.arrow(x0, y0, (x1-x0)*0.8, (y1-y0)*0.8, width=0.1, head_width=0.3, color="r")
 
-            x0, y0 = x1, y1
-            s = self.get_state_index((x1, y1), 1)
-            self.direction = action
+        #     x0, y0 = x1, y1
+        #     s = self.get_state_index((x1, y1), 1)
+        #     self.direction = action
 
 
         # Best action for each state
