@@ -16,7 +16,7 @@ class Environment:
         # Define the dimensions of the environment
         self.n = 35
         self.m = 60
-        self.obstacle_reward = -1000000
+        self.obstacle_reward = -100000
         self.distance_reward = -2
         self.orientation_reward = 2
         self.car_width = 2
@@ -25,6 +25,7 @@ class Environment:
         self._generate_obstacles()
         self.stops = self._generate_states()
         self.visited = []
+        self.best_path = []
 
         self.s_to_coord, self.coord_to_s = self._get_dictionaries()
 
@@ -111,8 +112,9 @@ class Environment:
 
     
     def _intersects(self, state1, state2, obst):
-        x1, y1 = self.s_to_coord[state1]
-        x2, y2 = self.s_to_coord[state2]
+
+        A = self.s_to_coord[state1]
+        B = self.s_to_coord[state2]
 
         margin = self.car_width / 2
 
@@ -128,27 +130,28 @@ class Environment:
                    ((x4, y4), (x3, y4)), ((x3, y4), (x3, y3))]
 
         for border in borders:
-            xbord1, ybord1 = border[0]
-            xbord2, ybord2 = border[1]
+            C = border[0]
+            D = border[1]
 
-            dx1 = x2 - x1
-            dy1 = y2 - y1
-            dx2 = xbord2 - xbord1
-            dy2 = ybord2 - ybord1
+            if (self._ccw(A,C,D) != self._ccw(B,C,D)) and (self._ccw(A,B,C) != self._ccw(A,B,D)):
 
-            det = dx1 * dy2 - dx2 * dy1
+                xA, yA = A
+                xB, yB = B
+                xC, yC = C
+                xD, yD = D
+                
+                if (xA-xB == xC-xD) or (yA-yB == yC-yD):
+                    continue
+                else:
+                    return True
+        return False        
 
-            if det == 0:
-                continue
 
-            t1 = ((x1 - xbord1) * dy2 - (y1 - ybord1) * dx2) / det
-            t2 = ((x1 - xbord1) * dy1 - (y1 - ybord1) * dx1) / det
-            
-            if (0 <= t1 <= 1) and (0 <= t2 <= 1):
-                return True
-        
-        return False
-
+    def _ccw(self, A, B, C):
+        xA, yA = A
+        xB, yB = B
+        xC, yC = C
+        return (yC-yA)*(xB-xA) > (yB-yA)*(xC-xA)
     
     def _get_reward(self, state, destination):
         reward = self.Q[state, destination]
@@ -157,7 +160,7 @@ class Environment:
             if self._intersects(state, destination, obst):
                 reward += self.obstacle_reward
 
-        reward += self._reward_distance(state, destination)
+        #reward += self._reward_distance(state, destination)
         #reward += self._reward_keep_orientation(state, destination)
         
         return reward

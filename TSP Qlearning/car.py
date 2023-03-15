@@ -6,9 +6,9 @@ class Car:
         self.n_stops = self.env.n_stops
         self.n_actions = self.n_stops
         self.Q = self.env.Q
-        self.eps = 1.0
-        self.eps_min = 0
-        self.eps_decay = 0.85
+        self.eps = 10.0
+        self.eps_min = 0.01
+        self.eps_decay = 0.9
 
         self.reset_memory()
         
@@ -34,8 +34,8 @@ class Car:
     def train(self, s, a, r, lr, disc):
         self.Q[s, a] += lr * (r + disc * np.max(self.Q[a, :]) - self.Q[s, a])
 
-        if self.eps > self.eps_min:
-            self.eps *= self.eps_decay
+        #if self.eps > self.eps_min:
+        self.eps *= self.eps_decay
 
 
 

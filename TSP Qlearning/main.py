@@ -29,13 +29,30 @@ def run_episode(env, car, lr, disc):
 
     return env, car, reward
 
-def run_episodes(env, car, lr, disc, nb_episodes = 10000):
+def run_episodes(env, car, lr, disc, nb_episodes = 1000):
     rewards = []
     frames  = []
+    max_rew = -np.inf
 
     for i in tqdm(range(nb_episodes)):
         env, car, reward = run_episode(env, car, lr, disc)
         rewards.append(reward)
+        if reward > max_rew:
+            max_rew = reward
+            env.best_path = env.visited
+    print("max reward: ", max_rew)
+    print("final epsilon value: ", car.eps)
+    plot_rewards(rewards)
+    
+
+def plot_rewards(rewards):
+    fig = plt.figure(figsize=(20,10))
+    ax = fig.add_subplot(111)
+    ax.plot(rewards)
+    ax.set_title("Rewards over the episodes, max reward = {}, last reward = {}".format(round(max(rewards),2), round(rewards[-1], 2)))
+    ax.set_xlabel("Episodes")
+    ax.set_ylabel("Reward")
+    plt.savefig("rewards.png")
 
 
 def show_path(env, car, fname = "path.png"):
@@ -76,7 +93,8 @@ def show_path(env, car, fname = "path.png"):
 def list_trajectory(env, car):
     trajectory = []
 
-    for s in env.visited:
+    #for s in env.visited:
+    for s in env.best_path:
         x, y = env.s_to_coord[s]
         trajectory.append((x, y))
 
@@ -91,6 +109,6 @@ disc = 0.9
 env = Environment()
 car = Car(env)
 
-run_episodes(env, car, lr, disc, 10000)
+run_episodes(env, car, lr, disc, 50)
 show_path(env, car, "path.png")
 
