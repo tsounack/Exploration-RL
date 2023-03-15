@@ -16,7 +16,9 @@ class Environment:
         # Define the dimensions of the environment
         self.n = 35
         self.m = 60
-        self.obstacle_reward = -1000
+        self.obstacle_reward = -100000
+        self.distance_reward = -2
+        self.orientation_reward = -10
         self.car_width = 2
 
         self.obstacles = []
@@ -28,7 +30,7 @@ class Environment:
 
         self.n_stops = len(self.stops)
 
-        self.Q = -np.square(cdist(self.stops, self.stops, 'euclidean'))
+        self.Q = -cdist(self.stops, self.stops, 'euclidean')
 
         self.reset()
         
@@ -41,14 +43,14 @@ class Environment:
         x1, y1 = 10, 20
         x2, y2 = 15, 10
 
-        x3, y3 = 10, 30
-        x4, y4 = 30, 50
+        x3, y3 = 10, 50
+        x4, y4 = 20, 30
 
-        # TODO: multiple obstacles support
-        self.obstacles.append(((x1,y1),(x2,y2)))
+        self.obstacles.append(((x1,y1), (x2,y2)))
+        self.obstacles.append(((x3, y3), (x4, y4)))
         
 
-    def _generate_states(self) -> None:
+    def _generate_states(self):
         x = list(np.arange(self.car_width, self.n, self.car_width))
         y = list(np.arange(self.car_width, self.m, self.car_width))
         if self.n - x[-1] < self.car_width:
@@ -86,7 +88,7 @@ class Environment:
         for obst in self.obstacles:
             x1, y1 = obst[0]
             x2, y2 = obst[1]
-            if x >= x1 and x <= x2 and y <= y1 and y >= y2:
+            if (x2 >= x >= x1) and (y2 <= y <= y1):
                 return True
         return False
     
@@ -112,8 +114,15 @@ class Environment:
         x1, y1 = self.s_to_coord[state1]
         x2, y2 = self.s_to_coord[state2]
 
+        margin = self.car_width / 2
+
         x3, y3 = obst[0]
         x4, y4 = obst[1]
+
+        x3 -= margin
+        y3 += margin
+        x4 += margin
+        y4 -= margin
 
         borders = [((x3, y3), (x4, y3)), ((x4, y3), (x4, y4)),
                    ((x4, y4), (x3, y4)), ((x3, y4), (x3, y3))]
@@ -147,8 +156,47 @@ class Environment:
         for obst in self.obstacles:
             if self._intersects(state, destination, obst):
                 reward += self.obstacle_reward
+
+        reward += self._reward_distance(state, destination)
+        # reward += self._reward_keep_orientation(state, destination)
         
         return reward
+
+    
+    def _reward_distance(self, state, destination):
+        x1, y1 = self.s_to_coord[state]
+        x2, y2 = self.s_to_coord[destination]
+        vect = [x1 - x2, y1 - y2]
+        norm = np.linalg.norm(vect)
+
+        if norm > 4 * self.car_width:
+            return self.distance_reward * norm
+        else:
+            return 0
+
+    
+    def _reward_keep_orientation(self, state, destination):
+        reward = 0
+
+        if len(self.visited) >= 2:
+            x0, y0 = self.s_to_coord[self.visited[-2]]
+            x1, y1 = self.s_to_coord[state]
+            x2, y2 = self.s_to_coord[destination]
+
+            if x0 == x1:
+                if x2 != x0: reward = self.orientation_reward 
+            
+            elif y0 == y1:
+                if y2 != y0: reward = self.orientation_reward
+
+            else:
+                reward = self.orientation_reward
+            
+        return reward
+
+        
+
+
     
 
     def transition(self, destination):
