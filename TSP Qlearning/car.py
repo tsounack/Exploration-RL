@@ -8,7 +8,7 @@ class Car:
         self.Q = self.env.Q
         self.eps = 1
         self.eps_min = 0.01
-        self.eps_decay = 0.99
+        self.eps_decay = 0.999
 
         self.reset_memory()
         

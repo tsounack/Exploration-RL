@@ -28,7 +28,7 @@ class Environment:
 
         self.n_stops = len(self.stops)
 
-        self.Q = -cdist(self.stops, self.stops, 'euclidean')
+        self.Q = -np.square(cdist(self.stops, self.stops, 'euclidean'))
 
         self.reset()
         
