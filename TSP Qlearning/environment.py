@@ -16,9 +16,9 @@ class Environment:
         # Define the dimensions of the environment
         self.n = 35
         self.m = 60
-        self.obstacle_reward = -100000
+        self.obstacle_reward = -1000000
         self.distance_reward = -2
-        self.orientation_reward = -10
+        self.orientation_reward = 2
         self.car_width = 2
 
         self.obstacles = []
@@ -158,7 +158,7 @@ class Environment:
                 reward += self.obstacle_reward
 
         reward += self._reward_distance(state, destination)
-        # reward += self._reward_keep_orientation(state, destination)
+        #reward += self._reward_keep_orientation(state, destination)
         
         return reward
 
@@ -182,16 +182,16 @@ class Environment:
             x0, y0 = self.s_to_coord[self.visited[-2]]
             x1, y1 = self.s_to_coord[state]
             x2, y2 = self.s_to_coord[destination]
-
+            
             if x0 == x1:
-                if x2 != x0: reward = self.orientation_reward 
+                if x2 == x0: reward = self.orientation_reward 
             
             elif y0 == y1:
-                if y2 != y0: reward = self.orientation_reward
-
-            else:
-                reward = self.orientation_reward
+                if y2 == y0: reward = self.orientation_reward
             
+            elif x1 != x2 and y1 != y2:
+                reward = -self.orientation_reward
+
         return reward
 
         
