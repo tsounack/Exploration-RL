@@ -6,8 +6,8 @@ grid = SarsaLambda(n = 60,
                    learning = 0.1,
                    decay = 0.5,
                    epsilon = 0.3,
-                   nb_events = 100,
+                   nb_events = 60*35,
                    initial_coord=(1, 1)
                    )
-grid.run_simulations(100000)
+grid.run_simulations(1000)
 grid.show()

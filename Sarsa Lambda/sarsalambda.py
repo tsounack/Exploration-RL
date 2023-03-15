@@ -65,6 +65,7 @@ class SarsaLambda:
         self.visited = set(self.initial_coord)
         self.obstacle_states = set()
         self.state_coord_map = self.create_state_coord_map()
+        self.path = []
 
         self.Q = np.zeros((self.nb_state, self.nb_action))
         self.N = np.zeros((self.nb_state, self.nb_action))
@@ -121,12 +122,14 @@ class SarsaLambda:
         epsilon greedy
         """
         s = init_state
+        self.path = [self.state_coord_map[s]]
 
         for event in range(self.nb_events):
             a = self.epsilon_greedy(s)
             s1, r = self.transition(s, a)
             self.update(s, a, r)
             s = s1
+            self.path.append(self.state_coord_map[s])
             self.direction = a
         
 
@@ -306,11 +309,15 @@ class SarsaLambda:
 
         ax.grid(which='both', zorder=-10.0)
 
+        for i in range(len(self.path) - 1):
+            x0, y0 = self.path[i]
+            x1, y1 = self.path[i + 1]
+            ax.arrow(x0, y0, (x1-x0)*0.95, (y1-y0)*0.95, width=0.1, head_width=0.3, color="r")
 
-        # plot exploration
-        x0, y0 = (1, 1)
-        s      = self.get_state_index((1, 1), 1)
-        self.direction = 0
+        # # plot exploration
+        # x0, y0 = (1, 1)
+        # s      = self.get_state_index((1, 1), 1)
+        # self.direction = 0
 
         #### TODO: FIND THE EXACT NUMBER OF ITERATIONS TO PERFORM ####
 
