@@ -91,6 +91,6 @@ disc = 0.9
 env = Environment()
 car = Car(env)
 
-run_episodes(env, car, lr, disc, 1000)
+run_episodes(env, car, lr, disc, 10000)
 show_path(env, car, "path.png")
 
