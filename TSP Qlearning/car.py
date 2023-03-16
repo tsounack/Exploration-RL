@@ -6,9 +6,9 @@ class Car:
         self.n_stops = self.env.n_stops
         self.n_actions = self.n_stops
         self.Q = self.env.Q
-        self.eps = 10.0
+        self.eps = 100.0
         self.eps_min = 0.01
-        self.eps_decay = 0.9
+        self.eps_decay = 0.99
 
         self.reset_memory()
         

@@ -14,15 +14,16 @@ class Environment:
         
         """
         # Define the dimensions of the environment
-        self.n = 35
-        self.m = 60
+        self.n = 50
+        self.m = 30
         self.obstacle_reward = -100000
         self.distance_reward = -2
         self.orientation_reward = 2
         self.car_width = 2
+        self.n_obstacles = 6
 
         self.obstacles = []
-        self._generate_obstacles()
+        self._generate_obstacles(self.n_obstacles)
         self.stops = self._generate_states()
         self.visited = []
         self.best_path = []
@@ -37,22 +38,31 @@ class Environment:
         
  
     
-    def _generate_obstacles(self) -> None:
+    def _generate_obstacles(self, n_obst) -> None:
         """
         
         """
-        x1, y1 = 10, 20
-        x2, y2 = 15, 10
+        # x1, y1 = 10, 20
+        # x2, y2 = 15, 10
 
-        x3, y3 = 10, 50
-        x4, y4 = 20, 30
+        # x3, y3 = 10, 50
+        # x4, y4 = 20, 30
 
-        x5, y5 = 1, 10
-        x6, y6 = 10, 5
+        # x5, y5 = 1, 10
+        # x6, y6 = 10, 5
 
-        self.obstacles.append(((x1, y1), (x2, y2)))
-        self.obstacles.append(((x3, y3), (x4, y4)))
-        self.obstacles.append(((x5, y5), (x6, y6)))
+        # self.obstacles.append(((x1, y1), (x2, y2)))
+        # self.obstacles.append(((x3, y3), (x4, y4)))
+        # self.obstacles.append(((x5, y5), (x6, y6)))
+
+        for _ in range(n_obst):
+            dx = np.random.randint(2, self.n/5 + 1)
+            dy = np.random.randint(2, self.m/5 + 1)
+            x1 = np.random.randint(0, self.n + 1 - dx)
+            y1 = np.random.randint(dy, self.m + 1)
+            x2 = x1 + dx
+            y2 = y1 - dy
+            self.obstacles.append(((x1, y1), (x2, y2)))
         
 
     def _generate_states(self):

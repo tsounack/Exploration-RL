@@ -52,10 +52,10 @@ def plot_rewards(rewards):
     ax.set_title("Rewards over the episodes, max reward = {}, last reward = {}".format(round(max(rewards),2), round(rewards[-1], 2)))
     ax.set_xlabel("Episodes")
     ax.set_ylabel("Reward")
-    plt.savefig("rewards.png")
+    plt.savefig("rewards{}.png".format(env.n_obstacles))
 
 
-def show_path(env, car, fname = "path.png"):
+def show_path(env, car):
         fig = plt.figure(figsize=(env.n, env.m))
         ax = fig.add_subplot(111)
 
@@ -86,8 +86,12 @@ def show_path(env, car, fname = "path.png"):
         
         x0, y0 = x1, y1
         x1, y1 = trajectory[0]
-        ax.arrow(x0, y0, (x1-x0)*0.95, (y1-y0)*0.95, width=0.1, head_width=0.3, color="k")
-        plt.savefig(fname)
+
+        ax.scatter(x0, y0, 200, c='k')
+        ax.scatter(x1, y1, 200, c='k')
+        ax.annotate("START", (x1, y1), (x1-2, y1+0.5), c='k', size=60)
+        ax.annotate("END", (x0, y0), (x0-1, y0+0.5), c='k', size=60)
+        plt.savefig("path{}.png".format(env.n_obstacles))
 
 
 def list_trajectory(env, car):
@@ -103,12 +107,12 @@ def list_trajectory(env, car):
 
 
 
-lr = 0.1
+lr = 0.05
 disc = 0.9
 
 env = Environment()
 car = Car(env)
 
-run_episodes(env, car, lr, disc, 50)
-show_path(env, car, "path.png")
+run_episodes(env, car, lr, disc, 100)
+show_path(env, car)
 
