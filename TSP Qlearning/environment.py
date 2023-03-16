@@ -20,7 +20,7 @@ class Environment:
         self.distance_reward = -2
         self.orientation_reward = 2
         self.car_width = 2
-        self.n_obstacles = 6
+        self.n_obstacles = 4
 
         self.obstacles = []
         self._generate_obstacles(self.n_obstacles)
