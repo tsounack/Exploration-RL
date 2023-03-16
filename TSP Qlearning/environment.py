@@ -47,8 +47,12 @@ class Environment:
         x3, y3 = 10, 50
         x4, y4 = 20, 30
 
-        self.obstacles.append(((x1,y1), (x2,y2)))
+        x5, y5 = 1, 10
+        x6, y6 = 10, 5
+
+        self.obstacles.append(((x1, y1), (x2, y2)))
         self.obstacles.append(((x3, y3), (x4, y4)))
+        self.obstacles.append(((x5, y5), (x6, y6)))
         
 
     def _generate_states(self):
