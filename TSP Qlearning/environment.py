@@ -20,13 +20,15 @@ class Environment:
         self.distance_reward = -2
         self.orientation_reward = 2
         self.car_width = 2
-        self.n_obstacles = 4
+        self.n_obstacles = 6
 
         self.obstacles = []
         self._generate_obstacles(self.n_obstacles)
         self.stops = self._generate_states()
         self.visited = []
         self.best_path = []
+
+        self.borders = self._get_borders()
 
         self.s_to_coord, self.coord_to_s = self._get_dictionaries()
 
@@ -159,6 +161,25 @@ class Environment:
                 else:
                     return True
         return False        
+    
+    def _get_borders(self):
+        borders = []
+        borders.append(((0, 0),(0, self.m)))
+        borders.append(((0, self.m),(self.n, self.m)))
+        borders.append(((self.n, self.m),(self.n, 0)))
+        borders.append(((self.n, 0),(0, 0)))
+
+        for obst in self.obstacles:
+            x3, y3 = obst[0]
+            x4, y4 = obst[1]
+
+            borders.append(((x3, y3), (x4, y3)))
+            borders.append(((x4, y3), (x4, y4)))
+            borders.append(((x4, y4), (x3, y4)))
+            borders.append(((x3, y4), (x3, y3)))
+        
+        return borders
+
 
 
     def _ccw(self, A, B, C):
