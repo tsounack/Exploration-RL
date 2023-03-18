@@ -44,18 +44,6 @@ class Environment:
         """
         
         """
-        # x1, y1 = 10, 20
-        # x2, y2 = 15, 10
-
-        # x3, y3 = 10, 50
-        # x4, y4 = 20, 30
-
-        # x5, y5 = 1, 10
-        # x6, y6 = 10, 5
-
-        # self.obstacles.append(((x1, y1), (x2, y2)))
-        # self.obstacles.append(((x3, y3), (x4, y4)))
-        # self.obstacles.append(((x5, y5), (x6, y6)))
 
         for _ in range(n_obst):
             dx = np.random.randint(2, self.n/5 + 1)
@@ -194,47 +182,8 @@ class Environment:
         for obst in self.obstacles:
             if self._intersects(state, destination, obst):
                 reward += self.obstacle_reward
-
-        #reward += self._reward_distance(state, destination)
-        #reward += self._reward_keep_orientation(state, destination)
         
         return reward
-
-    
-    def _reward_distance(self, state, destination):
-        x1, y1 = self.s_to_coord[state]
-        x2, y2 = self.s_to_coord[destination]
-        vect = [x1 - x2, y1 - y2]
-        norm = np.linalg.norm(vect)
-
-        if norm > 4 * self.car_width:
-            return self.distance_reward * norm
-        else:
-            return 0
-
-    
-    def _reward_keep_orientation(self, state, destination):
-        reward = 0
-
-        if len(self.visited) >= 2:
-            x0, y0 = self.s_to_coord[self.visited[-2]]
-            x1, y1 = self.s_to_coord[state]
-            x2, y2 = self.s_to_coord[destination]
-            
-            if x0 == x1:
-                if x2 == x0: reward = self.orientation_reward 
-            
-            elif y0 == y1:
-                if y2 == y0: reward = self.orientation_reward
-            
-            elif x1 != x2 and y1 != y2:
-                reward = -self.orientation_reward
-
-        return reward
-
-        
-
-
     
 
     def transition(self, destination):
@@ -275,51 +224,3 @@ class Environment:
             ax.plot([x1, x2], [y2, y2], c='b')
             ax.plot([x1, x1], [y1, y2], c='b')
             ax.plot([x2, x2], [y1, y2], c='b')
-
-
-    def render(self,return_img = False):
-        
-        fig = plt.figure(figsize=(7,7))
-        ax = fig.add_subplot(111)
-        ax.set_title("Delivery Stops")
-
-        # Show stops
-        ax.scatter(self.x,self.y,c = "red",s = 50)
-
-        # Show START
-        if len(self.stops)>0:
-            xy = self._get_xy(initial = True)
-            xytext = xy[0]+0.1,xy[1]-0.05
-            ax.annotate("START",xy=xy,xytext=xytext,weight = "bold")
-
-        # Show itinerary
-        if len(self.stops) > 1:
-            ax.plot(self.x[self.stops],self.y[self.stops],c = "blue",linewidth=1,linestyle="--")
-            
-            # Annotate END
-            xy = self._get_xy(initial = False)
-            xytext = xy[0]+0.1,xy[1]-0.05
-            ax.annotate("END",xy=xy,xytext=xytext,weight = "bold")
-
-
-        if hasattr(self,"box"):
-            left,bottom = self.box[0],self.box[2]
-            width = self.box[1] - self.box[0]
-            height = self.box[3] - self.box[2]
-            rect = Rectangle((left,bottom), width, height)
-            collection = PatchCollection([rect],facecolor = "red",alpha = 0.2)
-            ax.add_collection(collection)
-
-
-        plt.xticks([])
-        plt.yticks([])
-        
-        if return_img:
-            # From https://ndres.me/post/matplotlib-animated-gifs-easily/
-            fig.canvas.draw_idle()
-            image = np.frombuffer(fig.canvas.tostring_rgb(), dtype='uint8')
-            image  = image.reshape(fig.canvas.get_width_height()[::-1] + (3,))
-            plt.close()
-            return image
-        else:
-            plt.show()

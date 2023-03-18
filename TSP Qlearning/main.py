@@ -41,7 +41,6 @@ def run_episodes(env, car, lr, disc, nb_episodes = 1000):
             max_rew = reward
             env.best_path = env.visited
     print("max reward: ", max_rew)
-    print("final epsilon value: ", car.eps)
     plot_rewards(rewards)
     
 
@@ -49,9 +48,10 @@ def plot_rewards(rewards):
     fig = plt.figure(figsize=(20,10))
     ax = fig.add_subplot(111)
     ax.plot(rewards)
-    ax.set_title("Rewards over the episodes, max reward = {}, last reward = {}".format(round(max(rewards),2), round(rewards[-1], 2)))
-    ax.set_xlabel("Episodes")
-    ax.set_ylabel("Reward")
+    ax.set_title("Rewards over the episodes", fontsize=50)
+    ax.set_xlabel("Episodes", fontsize=40)
+    ax.set_ylabel("Reward", fontsize=40)
+    ax.set_xticklabels(np.arange(0, 100, 10), fontsize=30)
     plt.savefig("rewards{}.png".format(env.n_obstacles))
 
 

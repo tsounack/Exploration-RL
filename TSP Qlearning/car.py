@@ -34,7 +34,6 @@ class Car:
     def train(self, s, a, r, lr, disc):
         self.Q[s, a] += lr * (r + disc * np.max(self.Q[a, :]) - self.Q[s, a])
 
-        #if self.eps > self.eps_min:
         self.eps *= self.eps_decay
 
 
